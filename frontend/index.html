@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oga Assistant</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    .chat-container {
+      width: 100%; max-width: 720px; height: 92vh;
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .header {
+      background: #1a1a2e; color: #fff;
+      padding: 16px 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .header-avatar {
+      width: 40px; height: 40px; background: #e8b84b;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+
+    .header-info h1 { font-size: 16px; font-weight: 600; }
+    .header-info p  { font-size: 12px; opacity: 0.65; margin-top: 2px; }
+
+    .header-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+    .new-chat-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: #fff; border-radius: 8px;
+      padding: 5px 10px; font-size: 11px;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .new-chat-btn:hover { background: rgba(255,255,255,0.1); }
+
+    .status-dot { width: 8px; height: 8px; background: #4caf50; border-radius: 50%; }
+
+    .tabs {
+      display: flex; border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+
+    .tab {
+      flex: 1; padding: 12px;
+      text-align: center; font-size: 13px; font-weight: 500;
+      color: #888; cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s; user-select: none;
+    }
+
+    .tab:hover  { color: #1a1a2e; background: #f0f0f0; }
+    .tab.active { color: #1a1a2e; border-bottom-color: #e8b84b; background: #fff; }
+
+    .pane { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+    .pane.active { display: flex; }
+
+    .messages {
+      flex: 1; overflow-y: auto;
+      padding: 24px 20px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .message {
+      display: flex; gap: 10px; max-width: 85%;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user      { align-self: flex-end; flex-direction: row-reverse; }
+    .message.assistant { align-self: flex-start; }
+
+    .message-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0; margin-top: 2px;
+    }
+
+    .message.user .message-avatar      { background: #1a1a2e; color: #fff; }
+    .message.assistant .message-avatar { background: #e8b84b; color: #1a1a2e; }
+
+    .message-bubble {
+      padding: 12px 16px; border-radius: 16px;
+      font-size: 14px; line-height: 1.7;
+    }
+
+    .message.user .message-bubble {
+      background: #1a1a2e; color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .message.assistant .message-bubble {
+      background: #f5f5f5; color: #1a1a2e;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message-bubble strong { font-weight: 600; }
+
+    .typing { display: flex; align-items: center; gap: 10px; align-self: flex-start; }
+
+    .typing-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: #e8b84b;
+      display: flex; align-items: center; justify-content: center; font-size: 14px;
+    }
+
+    .typing-bubble {
+      background: #f5f5f5; border-radius: 16px;
+      border-bottom-left-radius: 4px;
+      padding: 14px 18px;
+      display: flex; gap: 5px; align-items: center;
+    }
+
+    .typing-bubble span {
+      width: 7px; height: 7px; background: #aaa;
+      border-radius: 50%; animation: bounce 1.2s infinite;
+    }
+
+    .typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30%            { transform: translateY(-6px); }
+    }
+
+    .quick-prompts {
+      padding: 0 20px 12px;
+      display: flex; gap: 8px; flex-wrap: wrap;
+    }
+
+    .quick-btn {
+      background: #f0f2f5; border: 1px solid #e0e0e0;
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 12px; color: #444;
+      cursor: pointer; transition: background 0.15s; white-space: nowrap;
+    }
+
+    .quick-btn:hover { background: #e8b84b22; border-color: #e8b84b; color: #1a1a2e; }
+
+    .input-area {
+      padding: 16px 20px; border-top: 1px solid #f0f0f0;
+      display: flex; gap: 10px; align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1; border: 1.5px solid #e0e0e0; border-radius: 12px;
+      padding: 12px 16px; font-size: 14px; font-family: inherit;
+      resize: none; outline: none; transition: border-color 0.2s;
+      min-height: 46px; max-height: 120px; line-height: 1.5;
+    }
+
+    textarea:focus { border-color: #e8b84b; }
+
+    .send-btn {
+      width: 46px; height: 46px; background: #1a1a2e;
+      border: none; border-radius: 12px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.15s, transform 0.1s;
+    }
+
+    .send-btn:hover  { background: #e8b84b; }
+    .send-btn:active { transform: scale(0.95); }
+    .send-btn svg    { width: 20px; height: 20px; fill: #fff; }
+
+    .welcome { text-align: center; padding: 32px 20px; color: #888; }
+    .welcome h2 { font-size: 18px; color: #1a1a2e; margin-bottom: 8px; }
+    .welcome p  { font-size: 13px; line-height: 1.6; }
+  </style>
+</head>
+<body>
+<div class="chat-container">
+
+  <div class="header">
+    <div class="header-avatar" id="header-avatar">🧠</div>
+    <div class="header-info">
+      <h1 id="header-title">Oga Assistant</h1>
+      <p id="header-subtitle">Your AI inventory manager</p>
+    </div>
+    <div class="header-actions">
+      <button class="new-chat-btn" onclick="newChat()">+ New chat</button>
+      <div class="status-dot"></div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-inventory" onclick="switchTab('inventory')">📦 Inventory</div>
+    <div class="tab"        id="tab-finance"   onclick="switchTab('finance')">💰 Finance</div>
+    <div class="tab"        id="tab-sales"     onclick="switchTab('sales')">🛒 Sales</div>
+  </div>
+
+  <!-- Inventory pane -->
+  <div class="pane active" id="pane-inventory">
+    <div class="messages" id="messages-inventory">
+      <div class="welcome">
+        <h2>Welcome, Oga! 👋</h2>
+        <p>I manage your store inventory. Ask me what's running low,<br>what to restock, or how your sales are doing.</p>
+      </div>
+    </div>
+    <div class="quick-prompts" id="quick-inventory">
+      <button class="quick-btn" onclick="sendQuick('What is running low in the store?')">🔴 Low stock</button>
+      <button class="quick-btn" onclick="sendQuick('What should I restock this week?')">📦 Restock plan</button>
+      <button class="quick-btn" onclick="sendQuick('Show me all stock levels')">📋 All stock</button>
+      <button class="quick-btn" onclick="sendQuick('How have sales been this week?')">📈 Sales this week</button>
+    </div>
+    <div class="input-area">
+      <textarea id="input-inventory" placeholder="Ask about stock, sales, or restocking..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event,'inventory')"></textarea>
+      <button class="send-btn" onclick="sendMessage('inventory')">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Finance pane -->
+  <div class="pane" id="pane-finance">
+    <div class="messages" id="messages-finance">
+      <div class="welcome">
+        <h2>Oga Finance 💰</h2>
+        <p>I analyse your money — profit, margins, expenses, and cash flow.<br>Ask me anything about how the business is performing financially.</p>
+      </div>
+    </div>
+    <div class="quick-prompts" id="quick-finance">
+      <button class="quick-btn" onclick="sendQuick('How much profit did we make this week?')">📊 Weekly profit</button>
+      <button class="quick-btn" onclick="sendQuick('Which products make the most money?')">⭐ Best margins</button>
+      <button class="quick-btn" onclick="sendQuick('How much cash do I need to restock?')">💵 Restock budget</button>
+      <button class="quick-btn" onclick="sendQuick('Show me cash flow for the last 14 days')">📉 Cash flow</button>
+    </div>
+    <div class="input-area">
+      <textarea id="input-finance" placeholder="Ask about profit, margins, expenses..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event,'finance')"></textarea>
+      <button class="send-btn" onclick="sendMessage('finance')">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sales pane -->
+  <div class="pane" id="pane-sales">
+    <div class="messages" id="messages-sales">
+      <div class="welcome">
+        <h2>Oga Shop 🛒</h2>
+        <p>I handle your customer sales. Customers can check prices,<br>find products, and place orders right here.</p>
+      </div>
+    </div>
+    <div class="quick-prompts" id="quick-sales">
+      <button class="quick-btn" onclick="sendQuick('Do you have semovita?')">🔍 Check product</button>
+      <button class="quick-btn" onclick="sendQuick('What cooking oils do you have?')">🫙 Browse oils</button>
+      <button class="quick-btn" onclick="sendQuick('How much is a carton of Indomie?')">💬 Ask price</button>
+      <button class="quick-btn" onclick="sendQuick('What beverages do you sell?')">🥤 Browse beverages</button>
+    </div>
+    <div class="input-area">
+      <textarea id="input-sales" placeholder="Ask about products, prices, or place an order..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event,'sales')"></textarea>
+      <button class="send-btn" onclick="sendMessage('sales')">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const TAB_META = {
+    inventory: { avatar: '🧠', title: 'Oga Assistant',  subtitle: 'Your AI inventory manager',  endpoint: '/chat',    welcome: '<h2>Welcome, Oga! 👋</h2><p>I manage your store inventory. Ask me what\'s running low,<br>what to restock, or how your sales are doing.</p>' },
+    finance:   { avatar: '💰', title: 'Oga Finance',    subtitle: 'Your AI financial advisor',   endpoint: '/finance', welcome: '<h2>Oga Finance 💰</h2><p>I analyse your money — profit, margins, expenses, and cash flow.<br>Ask me anything about how the business is performing financially.</p>' },
+    sales:     { avatar: '🛒', title: 'Oga Shop',       subtitle: 'Your AI sales assistant',     endpoint: '/sales',   welcome: '<h2>Oga Shop 🛒</h2><p>I handle your customer sales. Customers can check prices,<br>find products, and place orders right here.</p>' },
+  };
+
+  const state = {
+    inventory: { sessionId: '', loading: false },
+    finance:   { sessionId: '', loading: false },
+    sales:     { sessionId: '', loading: false },
+  };
+
+  let activeTab = 'inventory';
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    document.getElementById(`pane-${tab}`).classList.add('active');
+    const meta = TAB_META[tab];
+    document.getElementById('header-avatar').textContent   = meta.avatar;
+    document.getElementById('header-title').textContent    = meta.title;
+    document.getElementById('header-subtitle').textContent = meta.subtitle;
+    document.getElementById(`input-${tab}`).focus();
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  function handleKey(e, tab) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(tab); }
+  }
+
+  function sendQuick(text) {
+    document.getElementById(`input-${activeTab}`).value = text;
+    sendMessage(activeTab);
+  }
+
+  function formatMessage(text) {
+    return text
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/^\s*\*\s+/gm, '• ')
+      .replace(/\n/g, '<br>');
+  }
+
+  function addMessage(tab, role, text) {
+    const container = document.getElementById(`messages-${tab}`);
+    const welcome = container.querySelector('.welcome');
+    if (welcome) welcome.remove();
+
+    const div    = document.createElement('div');
+    div.className = `message ${role}`;
+
+    const avatar = document.createElement('div');
+    avatar.className = 'message-avatar';
+    avatar.textContent = role === 'user' ? '👤' : TAB_META[tab].avatar;
+
+    const bubble = document.createElement('div');
+    bubble.className = 'message-bubble';
+    bubble.innerHTML = formatMessage(text);
+
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function showTyping(tab) {
+    const container = document.getElementById(`messages-${tab}`);
+    const div = document.createElement('div');
+    div.className = 'typing';
+    div.id = `typing-${tab}`;
+    div.innerHTML = `<div class="typing-avatar">${TAB_META[tab].avatar}</div>
+      <div class="typing-bubble"><span></span><span></span><span></span></div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function hideTyping(tab) {
+    const el = document.getElementById(`typing-${tab}`);
+    if (el) el.remove();
+  }
+
+  async function newChat() {
+    const tab = activeTab;
+    const sid = state[tab].sessionId;
+    if (sid) await fetch(`/session/${sid}`, { method: 'DELETE' });
+    state[tab].sessionId = '';
+    document.getElementById(`messages-${tab}`).innerHTML = `<div class="welcome">${TAB_META[tab].welcome}</div>`;
+    document.getElementById(`quick-${tab}`).style.display = 'flex';
+    document.getElementById(`input-${tab}`).focus();
+  }
+
+  async function sendMessage(tab) {
+    const input = document.getElementById(`input-${tab}`);
+    const text  = input.value.trim();
+    if (!text || state[tab].loading) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    document.getElementById(`quick-${tab}`).style.display = 'none';
+
+    addMessage(tab, 'user', text);
+    showTyping(tab);
+    state[tab].loading = true;
+
+    try {
+      const res = await fetch(TAB_META[tab].endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, session_id: state[tab].sessionId }),
+      });
+
+      const data = await res.json();
+      hideTyping(tab);
+
+      if (data.response) {
+        addMessage(tab, 'assistant', data.response);
+        state[tab].sessionId = data.session_id;
+      } else {
+        addMessage(tab, 'assistant', 'Something went wrong. Please try again.');
+      }
+    } catch (err) {
+      hideTyping(tab);
+      addMessage(tab, 'assistant', 'Could not reach the server. Make sure the backend is running.');
+    } finally {
+      state[tab].loading = false;
+      input.focus();
+    }
+  }
+</script>
+</body>
+</html>

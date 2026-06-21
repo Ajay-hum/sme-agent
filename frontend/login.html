@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oga Assistant — Login</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+      width: 100%;
+      max-width: 440px;
+      overflow: hidden;
+    }
+
+    /* ── Card header ── */
+    .card-header {
+      background: #1a1a2e;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: #e8b84b;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
+    }
+
+    .tagline {
+      font-size: 13px;
+      color: rgba(255,255,255,0.6);
+    }
+
+    /* ── Tabs ── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 14px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: #888;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .tab.active {
+      color: #1a1a2e;
+      border-bottom-color: #e8b84b;
+    }
+
+    .tab:hover { color: #1a1a2e; }
+
+    /* ── Form ── */
+    .card-body { padding: 28px 32px; }
+
+    .form { display: none; }
+    .form.active { display: block; }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fff;
+      color: #1a1a2e;
+    }
+
+    input:focus, select:focus { border-color: #e8b84b; }
+    input::placeholder { color: #bbb; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* ── Submit button ── */
+    .submit-btn {
+      width: 100%;
+      padding: 13px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.15s;
+      margin-top: 8px;
+    }
+
+    .submit-btn:hover    { background: #e8b84b; color: #1a1a2e; }
+    .submit-btn:disabled { background: #ccc; cursor: not-allowed; color: #fff; }
+
+    /* ── Error / success messages ── */
+    .message {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .message.error   { background: #fce4ec; color: #c62828; display: block; }
+    .message.success { background: #e8f5e9; color: #2e7d32; display: block; }
+
+    /* ── Divider ── */
+    .divider {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin: 20px 0 4px;
+    }
+
+    /* ── Footer ── */
+    .card-footer {
+      padding: 16px 32px;
+      background: #fafafa;
+      border-top: 1px solid #f0f0f0;
+      text-align: center;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .card-footer a {
+      color: #e8b84b;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* ── Password strength ── */
+    .strength-bar {
+      height: 3px;
+      border-radius: 2px;
+      margin-top: 6px;
+      background: #f0f0f0;
+      overflow: hidden;
+    }
+
+    .strength-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s, background 0.3s;
+      width: 0%;
+    }
+
+    .strength-label {
+      font-size: 11px;
+      margin-top: 4px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <div class="logo">Oga Assistant</div>
+    <div class="tagline">AI-powered business management for Nigerian SMEs</div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" id="tab-login"  onclick="switchTab('login')">Log in</div>
+    <div class="tab"        id="tab-signup" onclick="switchTab('signup')">Sign up</div>
+  </div>
+
+  <!-- Card body -->
+  <div class="card-body">
+
+    <!-- Login form -->
+    <div class="form active" id="form-login">
+      <div class="message" id="login-message"></div>
+
+      <div class="form-group">
+        <label>Email address</label>
+        <input type="email" id="login-email" placeholder="you@example.com"
+          onkeydown="if(event.key==='Enter') submitLogin()"/>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="Your password"
+          onkeydown="if(event.key==='Enter') submitLogin()"/>
+      </div>
+
+      <button class="submit-btn" id="login-btn" onclick="submitLogin()">
+        Log in to my business
+      </button>
+    </div>
+
+    <!-- Signup form -->
+    <div class="form" id="form-signup">
+      <div class="message" id="signup-message"></div>
+
+      <div class="form-group">
+        <label>Business name</label>
+        <input type="text" id="signup-business" placeholder="e.g. Mama Ngozi Provisions"/>
+      </div>
+
+      <div class="form-group">
+        <label>Business type</label>
+        <select id="signup-type">
+          <option value="provisions">Provisions / Grocery store</option>
+          <option value="pharmacy">Pharmacy</option>
+          <option value="hardware">Hardware store</option>
+          <option value="clothing">Clothing / Fashion</option>
+          <option value="electronics">Electronics</option>
+          <option value="wholesale">Wholesale / Distribution</option>
+          <option value="other">Other retail business</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your full name</label>
+          <input type="text" id="signup-name" placeholder="Full name"/>
+        </div>
+        <div class="form-group">
+          <label>Email address</label>
+          <input type="email" id="signup-email" placeholder="you@example.com"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="signup-password" placeholder="Min. 8 characters"
+          oninput="checkStrength(this.value)"/>
+        <div class="strength-bar">
+          <div class="strength-fill" id="strength-fill"></div>
+        </div>
+        <div class="strength-label" id="strength-label"></div>
+      </div>
+
+      <button class="submit-btn" id="signup-btn" onclick="submitSignup()">
+        Create my account
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="card-footer">
+    By signing up you agree to use this responsibly. &nbsp;|&nbsp;
+    <a href="/">Already have an account? Log in</a>
+  </div>
+
+</div>
+
+<script>
+  // ── Tab switching ──────────────────────────────────────────────────────────
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+    document.getElementById(`form-${tab}`).classList.add('active');
+    clearMessages();
+  }
+
+  function clearMessages() {
+    document.querySelectorAll('.message').forEach(m => {
+      m.className = 'message';
+      m.textContent = '';
+    });
+  }
+
+  function showMessage(id, text, type) {
+    const el = document.getElementById(id);
+    el.textContent = text;
+    el.className = `message ${type}`;
+  }
+
+  // ── Password strength checker ──────────────────────────────────────────────
+  function checkStrength(password) {
+    const fill  = document.getElementById('strength-fill');
+    const label = document.getElementById('strength-label');
+
+    if (!password) {
+      fill.style.width = '0%';
+      label.textContent = '';
+      return;
+    }
+
+    let score = 0;
+    if (password.length >= 8)  score++;
+    if (password.length >= 12) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/[0-9]/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    const levels = [
+      { width: '20%', color: '#ef5350', text: 'Very weak' },
+      { width: '40%', color: '#ff7043', text: 'Weak' },
+      { width: '60%', color: '#ffa726', text: 'Fair' },
+      { width: '80%', color: '#66bb6a', text: 'Strong' },
+      { width: '100%',color: '#2e7d32', text: 'Very strong' },
+    ];
+
+    const level = levels[Math.min(score - 1, 4)] || levels[0];
+    fill.style.width      = level.width;
+    fill.style.background = level.color;
+    label.textContent     = level.text;
+    label.style.color     = level.color;
+  }
+
+  // ── Login ──────────────────────────────────────────────────────────────────
+  async function submitLogin() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+
+    if (!email || !password) {
+      showMessage('login-message', 'Please enter your email and password.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('login-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Logging in...';
+
+    try {
+      const res = await fetch('/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showMessage('login-message', data.detail || 'Invalid email or password.', 'error');
+        return;
+      }
+
+      // Save token and user info to localStorage
+      localStorage.setItem('oga_token',         data.token);
+      localStorage.setItem('oga_user_id',       data.user_id);
+      localStorage.setItem('oga_business_id',   data.business_id);
+      localStorage.setItem('oga_business_name', data.business_name);
+      localStorage.setItem('oga_full_name',     data.full_name);
+
+      showMessage('login-message', `Welcome back, ${data.full_name}! Redirecting...`, 'success');
+
+      setTimeout(() => { window.location.href = '/'; }, 800);
+
+    } catch (err) {
+      showMessage('login-message', 'Could not reach the server. Please try again.', 'error');
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Log in to my business';
+    }
+  }
+
+  // ── Signup ─────────────────────────────────────────────────────────────────
+  async function submitSignup() {
+    const business_name = document.getElementById('signup-business').value.trim();
+    const business_type = document.getElementById('signup-type').value;
+    const full_name     = document.getElementById('signup-name').value.trim();
+    const email         = document.getElementById('signup-email').value.trim();
+    const password      = document.getElementById('signup-password').value;
+
+    if (!business_name || !full_name || !email || !password) {
+      showMessage('signup-message', 'Please fill in all fields.', 'error');
+      return;
+    }
+
+    if (password.length < 8) {
+      showMessage('signup-message', 'Password must be at least 8 characters.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('signup-btn');
+    btn.disabled    = true;
+    btn.textContent = 'Creating account...';
+
+    try {
+      const res = await fetch('/auth/signup', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ business_name, business_type, full_name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showMessage('signup-message', data.detail || 'Signup failed. Please try again.', 'error');
+        return;
+      }
+
+      // Save token and user info
+      localStorage.setItem('oga_token',         data.token);
+      localStorage.setItem('oga_user_id',       data.user_id);
+      localStorage.setItem('oga_business_id',   data.business_id);
+      localStorage.setItem('oga_business_name', data.business_name);
+      localStorage.setItem('oga_full_name',     data.full_name);
+
+      showMessage('signup-message',
+        `Account created! Welcome, ${data.full_name}. Setting up your workspace...`,
+        'success'
+      );
+
+      setTimeout(() => { window.location.href = '/'; }, 1200);
+
+    } catch (err) {
+      showMessage('signup-message', 'Could not reach the server. Please try again.', 'error');
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Create my account';
+    }
+  }
+
+  // ── Auto redirect if already logged in ────────────────────────────────────
+  if (localStorage.getItem('oga_token')) {
+    window.location.href = '/';
+  }
+</script>
+</body>
+</html>

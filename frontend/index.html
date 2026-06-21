@@ -9,8 +9,7 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      height: 100vh;
+      background: #f0f2f5; height: 100vh;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
     }
@@ -53,19 +52,22 @@
 
     .tabs {
       display: flex; border-bottom: 1px solid #f0f0f0;
-      background: #fafafa;
+      background: #fafafa; overflow-x: auto;
     }
 
     .tab {
-      flex: 1; padding: 12px;
-      text-align: center; font-size: 13px; font-weight: 500;
+      flex: 1; padding: 11px 8px; min-width: 80px;
+      text-align: center; font-size: 12px; font-weight: 500;
       color: #888; cursor: pointer;
       border-bottom: 2px solid transparent;
-      transition: all 0.15s; user-select: none;
+      transition: all 0.15s; user-select: none; white-space: nowrap;
     }
 
     .tab:hover  { color: #1a1a2e; background: #f0f0f0; }
     .tab.active { color: #1a1a2e; border-bottom-color: #e8b84b; background: #fff; }
+
+    /* Orchestrator tab gets a special highlight */
+    #tab-orchestrator.active { border-bottom-color: #e8b84b; background: #fffbf0; }
 
     .pane { display: none; flex-direction: column; flex: 1; overflow: hidden; }
     .pane.active { display: flex; }
@@ -184,34 +186,71 @@
     .welcome { text-align: center; padding: 32px 20px; color: #888; }
     .welcome h2 { font-size: 18px; color: #1a1a2e; margin-bottom: 8px; }
     .welcome p  { font-size: 13px; line-height: 1.6; }
+
+    .welcome-badge {
+      display: inline-block;
+      background: #e8b84b22; border: 1px solid #e8b84b;
+      color: #a07820; border-radius: 20px;
+      padding: 4px 12px; font-size: 11px; font-weight: 600;
+      margin-bottom: 12px; letter-spacing: 0.5px;
+    }
   </style>
 </head>
 <body>
 <div class="chat-container">
 
   <div class="header">
-    <div class="header-avatar" id="header-avatar">🧠</div>
+    <div class="header-avatar" id="header-avatar">⚡</div>
     <div class="header-info">
-      <h1 id="header-title">Oga Assistant</h1>
-      <p id="header-subtitle">Your AI inventory manager</p>
+      <h1 id="header-title">Oga Central</h1>
+      <p id="header-subtitle">Your complete AI business assistant</p>
     </div>
     <div class="header-actions">
+      <span id="business-label" style="font-size:11px;color:rgba(255,255,255,0.6);margin-right:4px;"></span>
+      <button class="new-chat-btn" onclick="window.location.href='/pos'" style="background:rgba(232,184,75,0.25);">🛒 Quick Sale</button>
       <button class="new-chat-btn" onclick="newChat()">+ New chat</button>
+      <button class="new-chat-btn" onclick="logout()" style="background:rgba(255,100,100,0.15);">Log out</button>
       <div class="status-dot"></div>
     </div>
   </div>
 
   <div class="tabs">
-    <div class="tab active" id="tab-inventory" onclick="switchTab('inventory')">📦 Inventory</div>
-    <div class="tab"        id="tab-finance"   onclick="switchTab('finance')">💰 Finance</div>
-    <div class="tab"        id="tab-sales"     onclick="switchTab('sales')">🛒 Sales</div>
+    <div class="tab active" id="tab-orchestrator" onclick="switchTab('orchestrator')">⚡ Ask Anything</div>
+    <div class="tab"        id="tab-inventory"   onclick="switchTab('inventory')">📦 Inventory</div>
+    <div class="tab"        id="tab-finance"     onclick="switchTab('finance')">💰 Finance</div>
+    <div class="tab"        id="tab-sales"       onclick="switchTab('sales')">🛒 Sales</div>
+  </div>
+
+  <!-- Orchestrator pane -->
+  <div class="pane active" id="pane-orchestrator">
+    <div class="messages" id="messages-orchestrator">
+      <div class="welcome">
+        <div class="welcome-badge">⚡ POWERED BY MULTI-AGENT AI</div>
+        <h2>Oga Central</h2>
+        <p>Ask me anything about your business — stock, money, sales, customers.<br>
+           I'll figure out what you need and get the right answer.</p>
+      </div>
+    </div>
+    <div class="quick-prompts" id="quick-orchestrator">
+      <button class="quick-btn" onclick="sendQuick('What is running low and how much will it cost to restock?')">⚡ Full restock report</button>
+      <button class="quick-btn" onclick="sendQuick('How is the business doing this week?')">📊 Business overview</button>
+      <button class="quick-btn" onclick="sendQuick('A customer wants to buy 2 cartons of Indomie Chicken')">🛒 Process a sale</button>
+      <button class="quick-btn" onclick="sendQuick('Which products should I focus on selling more?')">💡 Strategy advice</button>
+    </div>
+    <div class="input-area">
+      <textarea id="input-orchestrator" placeholder="Ask anything about your business..." rows="1"
+        oninput="autoResize(this)" onkeydown="handleKey(event,'orchestrator')"></textarea>
+      <button class="send-btn" onclick="sendMessage('orchestrator')">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
   </div>
 
   <!-- Inventory pane -->
-  <div class="pane active" id="pane-inventory">
+  <div class="pane" id="pane-inventory">
     <div class="messages" id="messages-inventory">
       <div class="welcome">
-        <h2>Welcome, Oga! 👋</h2>
+        <h2>Inventory Agent 📦</h2>
         <p>I manage your store inventory. Ask me what's running low,<br>what to restock, or how your sales are doing.</p>
       </div>
     </div>
@@ -234,7 +273,7 @@
   <div class="pane" id="pane-finance">
     <div class="messages" id="messages-finance">
       <div class="welcome">
-        <h2>Oga Finance 💰</h2>
+        <h2>Finance Agent 💰</h2>
         <p>I analyse your money — profit, margins, expenses, and cash flow.<br>Ask me anything about how the business is performing financially.</p>
       </div>
     </div>
@@ -257,7 +296,7 @@
   <div class="pane" id="pane-sales">
     <div class="messages" id="messages-sales">
       <div class="welcome">
-        <h2>Oga Shop 🛒</h2>
+        <h2>Sales Agent 🛒</h2>
         <p>I handle your customer sales. Customers can check prices,<br>find products, and place orders right here.</p>
       </div>
     </div>
@@ -279,19 +318,33 @@
 </div>
 
 <script>
+  // ── Auth check — redirect to login if not logged in ──────────────────────
+const token        = localStorage.getItem('oga_token');
+const businessName = localStorage.getItem('oga_business_name');
+const fullName     = localStorage.getItem('oga_full_name');
+
+if (!token) {
+  window.location.href = '/login';
+}
   const TAB_META = {
-    inventory: { avatar: '🧠', title: 'Oga Assistant',  subtitle: 'Your AI inventory manager',  endpoint: '/chat',    welcome: '<h2>Welcome, Oga! 👋</h2><p>I manage your store inventory. Ask me what\'s running low,<br>what to restock, or how your sales are doing.</p>' },
-    finance:   { avatar: '💰', title: 'Oga Finance',    subtitle: 'Your AI financial advisor',   endpoint: '/finance', welcome: '<h2>Oga Finance 💰</h2><p>I analyse your money — profit, margins, expenses, and cash flow.<br>Ask me anything about how the business is performing financially.</p>' },
-    sales:     { avatar: '🛒', title: 'Oga Shop',       subtitle: 'Your AI sales assistant',     endpoint: '/sales',   welcome: '<h2>Oga Shop 🛒</h2><p>I handle your customer sales. Customers can check prices,<br>find products, and place orders right here.</p>' },
+    orchestrator: { avatar: '⚡', title: 'Oga Central',      subtitle: 'Your complete AI business assistant', endpoint: '/orchestrator',
+      welcome: '<div class="welcome-badge">⚡ POWERED BY MULTI-AGENT AI</div><h2>Oga Central</h2><p>Ask me anything about your business — stock, money, sales, customers.<br>I\'ll figure out what you need and get the right answer.</p>' },
+    inventory:    { avatar: '🧠', title: 'Inventory Agent',   subtitle: 'Your AI inventory manager',           endpoint: '/chat',
+      welcome: '<h2>Inventory Agent 📦</h2><p>I manage your store inventory. Ask me what\'s running low,<br>what to restock, or how your sales are doing.</p>' },
+    finance:      { avatar: '💰', title: 'Finance Agent',     subtitle: 'Your AI financial advisor',           endpoint: '/finance',
+      welcome: '<h2>Finance Agent 💰</h2><p>I analyse your money — profit, margins, expenses, and cash flow.<br>Ask me anything about how the business is performing financially.</p>' },
+    sales:        { avatar: '🛒', title: 'Sales Agent',       subtitle: 'Your AI sales assistant',             endpoint: '/sales',
+      welcome: '<h2>Sales Agent 🛒</h2><p>I handle your customer sales. Customers can check prices,<br>find products, and place orders right here.</p>' },
   };
 
   const state = {
-    inventory: { sessionId: '', loading: false },
-    finance:   { sessionId: '', loading: false },
-    sales:     { sessionId: '', loading: false },
+    orchestrator: { sessionId: '', loading: false },
+    inventory:    { sessionId: '', loading: false },
+    finance:      { sessionId: '', loading: false },
+    sales:        { sessionId: '', loading: false },
   };
 
-  let activeTab = 'inventory';
+  let activeTab = 'orchestrator';
 
   function switchTab(tab) {
     activeTab = tab;
@@ -369,11 +422,24 @@
   async function newChat() {
     const tab = activeTab;
     const sid = state[tab].sessionId;
-    if (sid) await fetch(`/session/${sid}`, { method: 'DELETE' });
+    if (sid) await fetch(`/session/${sid}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
     state[tab].sessionId = '';
-    document.getElementById(`messages-${tab}`).innerHTML = `<div class="welcome">${TAB_META[tab].welcome}</div>`;
+    document.getElementById(`messages-${tab}`).innerHTML =
+      `<div class="welcome">${TAB_META[tab].welcome}</div>`;
     document.getElementById(`quick-${tab}`).style.display = 'flex';
     document.getElementById(`input-${tab}`).focus();
+  }
+
+  function logout() {
+    localStorage.removeItem('oga_token');
+    localStorage.removeItem('oga_user_id');
+    localStorage.removeItem('oga_business_id');
+    localStorage.removeItem('oga_business_name');
+    localStorage.removeItem('oga_full_name');
+    window.location.href = '/login';
   }
 
   async function sendMessage(tab) {
@@ -392,7 +458,10 @@
     try {
       const res = await fetch(TAB_META[tab].endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ message: text, session_id: state[tab].sessionId }),
       });
 
@@ -413,6 +482,10 @@
       input.focus();
     }
   }
+  // Show business name in header
+if (businessName) {
+  document.getElementById('business-label').textContent = businessName;
+}
 </script>
 </body>
 </html>

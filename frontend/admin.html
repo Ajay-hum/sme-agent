@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oga Admin — Product Management</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-logo {
+      font-size: 20px;
+      font-weight: 700;
+      color: #e8b84b;
+      letter-spacing: -0.5px;
+    }
+
+    .header-title {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .header-nav {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .nav-btn.secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    .nav-btn.secondary:hover { background: rgba(255,255,255,0.2); }
+
+    .nav-btn.primary {
+      background: #e8b84b;
+      color: #1a1a2e;
+      font-weight: 600;
+    }
+
+    .nav-btn.primary:hover { background: #d4a43a; }
+
+    /* ── Page layout ── */
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    /* ── Stats row ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .stat-value.warning { color: #e65100; }
+    .stat-value.success { color: #2e7d32; }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .search-input {
+        width: 320px;
+        min-width: 200px;
+        padding: 10px 14px;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.2s, width 0.2s;
+        background: #fff;
+    }
+
+    .search-input:focus {
+        width: 400px;
+        border-color: #e8b84b;
+    }
+
+    .filter-select {
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .filter-select:focus { border-color: #e8b84b; }
+
+    .toolbar-right { margin-left: auto; }
+
+    /* ── Table ── */
+    .table-card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: #f8f9fa;
+    }
+
+    th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #f0f0f0;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #333;
+      border-bottom: 1px solid #f8f8f8;
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .product-name {
+      font-weight: 500;
+      color: #1a1a2e;
+    }
+
+    .category-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      background: #f0f2f5;
+      color: #555;
+    }
+
+    .stock-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .stock-badge.critical { background: #fce4ec; color: #c62828; }
+    .stock-badge.low      { background: #fff3e0; color: #e65100; }
+    .stock-badge.ok       { background: #e8f5e9; color: #2e7d32; }
+
+    .price-cell { font-weight: 500; color: #1a1a2e; }
+
+    .margin-cell { font-size: 12px; color: #888; }
+    .margin-cell.good { color: #2e7d32; font-weight: 600; }
+
+    .action-btns {
+      display: flex;
+      gap: 6px;
+    }
+
+    .action-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .action-btn.edit {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .action-btn.edit:hover { background: #bbdefb; }
+
+    .action-btn.delete {
+      background: #fce4ec;
+      color: #c62828;
+    }
+
+    .action-btn.delete:hover { background: #f8bbd0; }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+    }
+
+    .empty-state h3 { font-size: 16px; color: #888; margin-bottom: 8px; }
+
+    /* ── Slide-in panel ── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .overlay.open { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .panel {
+      position: fixed;
+      top: 0; right: 0;
+      width: 420px;
+      height: 100vh;
+      background: #fff;
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.25s ease;
+      box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    }
+
+    .panel.open { transform: translateX(0); }
+
+    .panel-header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .panel-header h2 { font-size: 16px; font-weight: 600; }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 24px;
+      cursor: pointer;
+      line-height: 1;
+      opacity: 0.7;
+      transition: opacity 0.15s;
+    }
+
+    .close-btn:hover { opacity: 1; }
+
+    .panel-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    label .required { color: #e8b84b; }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+      background: #fff;
+    }
+
+    input:focus, select:focus { border-color: #e8b84b; }
+
+    .form-hint {
+      font-size: 11px;
+      color: #aaa;
+      margin-top: 4px;
+    }
+
+    .section-divider {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 24px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .margin-preview {
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-top: 8px;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .margin-preview strong { color: #1a1a2e; }
+
+    .panel-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #f0f0f0;
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .btn.cancel {
+      background: #f0f2f5;
+      color: #555;
+    }
+
+    .btn.cancel:hover { background: #e0e2e5; }
+
+    .btn.save {
+      background: #1a1a2e;
+      color: #fff;
+    }
+
+    .btn.save:hover { background: #e8b84b; }
+    .btn.save:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ── Toast notification ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .toast.success { background: #2e7d32; }
+    .toast.error   { background: #c62828; }
+    .toast.show    { transform: translateX(-50%) translateY(0); }
+
+    /* ── Delete confirm modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 28px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+
+    .modal h3 { font-size: 16px; color: #1a1a2e; margin-bottom: 8px; }
+    .modal p  { font-size: 13px; color: #888; margin-bottom: 20px; line-height: 1.5; }
+
+    .modal-btns { display: flex; gap: 10px; }
+
+    .modal-btn {
+      flex: 1; padding: 10px;
+      border-radius: 8px; border: none;
+      font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+      transition: all 0.15s;
+    }
+
+    .modal-btn.cancel-del { background: #f0f2f5; color: #555; }
+    .modal-btn.cancel-del:hover { background: #e0e2e5; }
+    .modal-btn.confirm-del { background: #c62828; color: #fff; }
+    .modal-btn.confirm-del:hover { background: #b71c1c; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+
+
+<!-- Page content -->
+<div class="page">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-label">Total products</div>
+      <div class="stat-value" id="stat-total">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Low stock alerts</div>
+      <div class="stat-value warning" id="stat-low">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Categories</div>
+      <div class="stat-value" id="stat-categories">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg. margin</div>
+      <div class="stat-value success" id="stat-margin">—</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <input class="search-input" type="text" placeholder="Search products..."
+      oninput="filterProducts()" id="search-input"/>
+    <select class="filter-select" onchange="filterProducts()" id="category-filter">
+      <option value="">All categories</option>
+    </select>
+    <span class="toolbar-right" id="product-count" style="font-size:13px;color:#888;"></span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>Product name</th>
+          <th>Category</th>
+          <th>Stock</th>
+          <th>Unit</th>
+          <th>Cost price</th>
+          <th>Sell price</th>
+          <th>Margin</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="product-table-body">
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">Loading products...</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Slide-in overlay -->
+<div class="overlay" id="overlay" onclick="closePanel()"></div>
+
+<!-- Slide-in panel -->
+<div class="panel" id="panel">
+  <div class="panel-header">
+    <h2 id="panel-title">Add New Product</h2>
+    <button class="close-btn" onclick="closePanel()">×</button>
+  </div>
+
+  <div class="panel-body">
+
+    <div class="section-divider">Basic information</div>
+
+    <div class="form-group">
+      <label>Product name <span class="required">*</span></label>
+      <input type="text" id="f-name" placeholder="e.g. Dangote Rice 50kg"/>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Category <span class="required">*</span></label>
+        <input type="text" id="f-category" placeholder="e.g. Grains"
+          list="category-suggestions"/>
+        <datalist id="category-suggestions"></datalist>
+      </div>
+      <div class="form-group">
+        <label>Unit <span class="required">*</span></label>
+        <input type="text" id="f-unit" placeholder="e.g. bag, pack, tin"/>
+      </div>
+    </div>
+
+    <div class="section-divider">Pricing</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Cost price (₦) <span class="required">*</span></label>
+        <input type="number" id="f-cost" placeholder="0" min="0"
+          oninput="updateMarginPreview()"/>
+        <div class="form-hint">What you buy it for</div>
+      </div>
+      <div class="form-group">
+        <label>Selling price (₦) <span class="required">*</span></label>
+        <input type="number" id="f-price" placeholder="0" min="0"
+          oninput="updateMarginPreview()"/>
+        <div class="form-hint">What you sell it for</div>
+      </div>
+    </div>
+
+    <div class="margin-preview" id="margin-preview" style="display:none">
+      Profit per unit: <strong id="preview-profit">—</strong> &nbsp;|&nbsp;
+      Margin: <strong id="preview-margin">—</strong>
+    </div>
+
+    <div class="section-divider">Stock settings</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Current stock</label>
+        <input type="number" id="f-stock" placeholder="0" min="0"/>
+        <div class="form-hint">How many units you have now</div>
+      </div>
+      <div class="form-group">
+        <label>Reorder threshold</label>
+        <input type="number" id="f-threshold" placeholder="10" min="0"/>
+        <div class="form-hint">Alert when stock drops below this</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Reorder quantity</label>
+      <input type="number" id="f-reorder-qty" placeholder="50" min="0"/>
+      <div class="form-hint">How many units to order when restocking</div>
+    </div>
+
+  </div>
+
+  <div class="panel-footer">
+    <button class="btn cancel" onclick="closePanel()">Cancel</button>
+    <button class="btn save" id="save-btn" onclick="saveProduct()">Save Product</button>
+  </div>
+</div>
+
+<!-- Delete confirm modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal">
+    <h3>Delete product?</h3>
+    <p id="delete-modal-text">This will permanently remove the product and cannot be undone.</p>
+    <div class="modal-btns">
+      <button class="modal-btn cancel-del" onclick="closeDeleteModal()">Cancel</button>
+      <button class="modal-btn confirm-del" onclick="confirmDelete()">Yes, delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  if (!localStorage.getItem('oga_token')) {
+    window.location.href = '/login';
+  }
+
+  let allProducts   = [];
+  let editingId     = null;
+  let deletingId    = null;
+
+  // ── Load products on page load ─────────────────────────────────────────────
+  async function loadProducts() {
+    try {
+      const res = await fetch('/products', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('oga_token')}` }
+      });
+      allProducts = await res.json();
+      renderTable(allProducts);
+      updateStats(allProducts);
+      populateCategoryFilter(allProducts);
+    } catch (err) {
+      showToast('Failed to load products', 'error');
+    }
+  }
+
+  // ── Render table ───────────────────────────────────────────────────────────
+  function renderTable(products) {
+    const tbody = document.getElementById('product-table-body');
+    document.getElementById('product-count').textContent =
+      `${products.length} product${products.length !== 1 ? 's' : ''}`;
+
+    if (products.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8">
+        <div class="empty-state">
+          <h3>No products found</h3>
+          <p>Add your first product using the button above.</p>
+        </div>
+      </td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = products.map(p => {
+      const margin = p.selling_price > 0
+        ? Math.round((p.selling_price - p.unit_cost) / p.selling_price * 100)
+        : 0;
+
+      const stockClass = p.current_stock <= p.reorder_threshold * 0.5
+        ? 'critical'
+        : p.current_stock <= p.reorder_threshold
+        ? 'low'
+        : 'ok';
+
+      return `
+        <tr>
+          <td><span class="product-name">${esc(p.name)}</span></td>
+          <td><span class="category-badge">${esc(p.category || '—')}</span></td>
+          <td>
+            <span class="stock-badge ${stockClass}">
+              ${p.current_stock} ${esc(p.unit || '')}
+            </span>
+          </td>
+          <td>${esc(p.unit || '—')}</td>
+          <td class="price-cell">₦${fmt(p.unit_cost)}</td>
+          <td class="price-cell">₦${fmt(p.selling_price)}</td>
+          <td class="margin-cell ${margin >= 20 ? 'good' : ''}">${margin}%</td>
+          <td>
+            <div class="action-btns">
+              <button class="action-btn edit"   onclick="openEdit(${p.id})">Edit</button>
+              <button class="action-btn delete" onclick="openDelete(${p.id}, '${esc(p.name)}')">Delete</button>
+            </div>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  function updateStats(products) {
+    const lowStock   = products.filter(p => p.current_stock <= p.reorder_threshold).length;
+    const categories = new Set(products.map(p => p.category).filter(Boolean)).size;
+    const avgMargin  = products.length === 0 ? 0 : Math.round(
+      products.reduce((sum, p) => {
+        const m = p.selling_price > 0
+          ? (p.selling_price - p.unit_cost) / p.selling_price * 100
+          : 0;
+        return sum + m;
+      }, 0) / products.length
+    );
+
+    document.getElementById('stat-total').textContent      = products.length;
+    document.getElementById('stat-low').textContent        = lowStock;
+    document.getElementById('stat-categories').textContent = categories;
+    document.getElementById('stat-margin').textContent     = `${avgMargin}%`;
+  }
+
+  // ── Category filter ────────────────────────────────────────────────────────
+  function populateCategoryFilter(products) {
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+    const select = document.getElementById('category-filter');
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat; opt.textContent = cat;
+      select.appendChild(opt);
+    });
+
+    // Also populate datalist for form autocomplete
+    const datalist = document.getElementById('category-suggestions');
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat;
+      datalist.appendChild(opt);
+    });
+  }
+
+  // ── Filter/search ──────────────────────────────────────────────────────────
+  function filterProducts() {
+    const query    = document.getElementById('search-input').value.toLowerCase();
+    const category = document.getElementById('category-filter').value;
+
+    const filtered = allProducts.filter(p => {
+      const matchSearch = !query ||
+        p.name.toLowerCase().includes(query) ||
+        (p.category || '').toLowerCase().includes(query);
+      const matchCat = !category || p.category === category;
+      return matchSearch && matchCat;
+    });
+
+    renderTable(filtered);
+  }
+
+  // ── Open panel (add) ───────────────────────────────────────────────────────
+  function openPanel() {
+    editingId = null;
+    document.getElementById('panel-title').textContent = 'Add New Product';
+    document.getElementById('save-btn').textContent    = 'Save Product';
+    clearForm();
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('panel').classList.add('open');
+    document.getElementById('f-name').focus();
+  }
+
+  // ── Open panel (edit) ──────────────────────────────────────────────────────
+  function openEdit(id) {
+    const product = allProducts.find(p => p.id === id);
+    if (!product) return;
+
+    editingId = id;
+    document.getElementById('panel-title').textContent = 'Edit Product';
+    document.getElementById('save-btn').textContent    = 'Save Changes';
+
+    document.getElementById('f-name').value       = product.name         || '';
+    document.getElementById('f-category').value   = product.category     || '';
+    document.getElementById('f-unit').value        = product.unit         || '';
+    document.getElementById('f-cost').value        = product.unit_cost    || 0;
+    document.getElementById('f-price').value       = product.selling_price || 0;
+    document.getElementById('f-stock').value       = product.current_stock || 0;
+    document.getElementById('f-threshold').value   = product.reorder_threshold || 10;
+    document.getElementById('f-reorder-qty').value = product.reorder_quantity  || 50;
+
+    updateMarginPreview();
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('panel').classList.add('open');
+    document.getElementById('f-name').focus();
+  }
+
+  // ── Close panel ────────────────────────────────────────────────────────────
+  function closePanel() {
+    document.getElementById('overlay').classList.remove('open');
+    document.getElementById('panel').classList.remove('open');
+    editingId = null;
+  }
+
+  // ── Clear form ─────────────────────────────────────────────────────────────
+  function clearForm() {
+    ['f-name','f-category','f-unit','f-cost','f-price'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('f-stock').value       = 0;
+    document.getElementById('f-threshold').value   = 10;
+    document.getElementById('f-reorder-qty').value = 50;
+    document.getElementById('margin-preview').style.display = 'none';
+  }
+
+  // ── Margin preview ─────────────────────────────────────────────────────────
+  function updateMarginPreview() {
+    const cost  = parseFloat(document.getElementById('f-cost').value)  || 0;
+    const price = parseFloat(document.getElementById('f-price').value) || 0;
+
+    if (cost > 0 && price > 0) {
+      const profit = price - cost;
+      const margin = Math.round(profit / price * 100);
+      document.getElementById('preview-profit').textContent = `₦${fmt(profit)}`;
+      document.getElementById('preview-margin').textContent = `${margin}%`;
+      document.getElementById('margin-preview').style.display = 'block';
+    } else {
+      document.getElementById('margin-preview').style.display = 'none';
+    }
+  }
+
+  // ── Save product (create or update) ───────────────────────────────────────
+  async function saveProduct() {
+    const name     = document.getElementById('f-name').value.trim();
+    const category = document.getElementById('f-category').value.trim();
+    const unit     = document.getElementById('f-unit').value.trim();
+    const cost     = parseFloat(document.getElementById('f-cost').value)  || 0;
+    const price    = parseFloat(document.getElementById('f-price').value) || 0;
+
+    if (!name || !category || !unit) {
+      showToast('Please fill in name, category and unit', 'error');
+      return;
+    }
+
+    if (price <= cost) {
+      showToast('Selling price must be higher than cost price', 'error');
+      return;
+    }
+
+    const payload = {
+      name,
+      category,
+      unit,
+      unit_cost:          cost,
+      selling_price:      price,
+      current_stock:      parseFloat(document.getElementById('f-stock').value)       || 0,
+      reorder_threshold:  parseFloat(document.getElementById('f-threshold').value)   || 10,
+      reorder_quantity:   parseFloat(document.getElementById('f-reorder-qty').value) || 50,
+    };
+
+    const btn = document.getElementById('save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      const url    = editingId ? `/products/${editingId}` : '/products';
+      const method = editingId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('oga_token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error('Save failed');
+
+      showToast(editingId ? 'Product updated!' : 'Product added!', 'success');
+      closePanel();
+      await loadProducts();
+    } catch (err) {
+      showToast('Failed to save product', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = editingId ? 'Save Changes' : 'Save Product';
+    }
+  }
+
+  // ── Delete flow ────────────────────────────────────────────────────────────
+  function openDelete(id, name) {
+    deletingId = id;
+    document.getElementById('delete-modal-text').textContent =
+      `This will permanently remove "${name}" from your product list. This cannot be undone.`;
+    document.getElementById('delete-modal').classList.add('open');
+  }
+
+  function closeDeleteModal() {
+    deletingId = null;
+    document.getElementById('delete-modal').classList.remove('open');
+  }
+
+  async function confirmDelete() {
+    if (!deletingId) return;
+
+    try {
+      const res = await fetch(`/products/${deletingId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('oga_token')}` },
+      });
+      if (!res.ok) throw new Error('Delete failed');
+
+      showToast('Product deleted', 'success');
+      closeDeleteModal();
+      await loadProducts();
+    } catch (err) {
+      showToast('Failed to delete product', 'error');
+    }
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(message, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className   = `toast ${type} show`;
+    setTimeout(() => { toast.className = `toast ${type}`; }, 3000);
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function fmt(n) {
+    return Number(n).toLocaleString('en-NG');
+  }
+
+  function esc(str) {
+    return String(str)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;');
+  }
+
+  // ── Close panel on Escape key ──────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closePanel();
+      closeDeleteModal();
+    }
+  });
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadProducts();
+</script>
+<script src="/static/nav.js"></script>
+<script>renderOgaNav('admin');</script>
+</body>
+</html>

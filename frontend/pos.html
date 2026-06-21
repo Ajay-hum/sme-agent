@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oga POS — Quick Sale</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .header-logo { font-size: 20px; font-weight: 700; color: #e8b84b; letter-spacing: -0.5px; }
+    .header-title { font-size: 14px; opacity: 0.7; }
+
+    .header-nav { margin-left: auto; display: flex; gap: 8px; }
+
+    .nav-btn {
+      padding: 7px 16px; border-radius: 8px; font-size: 13px;
+      cursor: pointer; border: none; font-family: inherit;
+      background: rgba(255,255,255,0.1); color: #fff;
+      transition: background 0.15s;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      height: calc(100vh - 56px);
+    }
+
+    /* ── Product grid side ── */
+    .product-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .search-input {
+      flex: 1;
+      max-width: 320px;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus { border-color: #e8b84b; }
+
+    .filter-select {
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .product-grid {
+      flex: 1;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 12px;
+      align-content: start;
+      padding-right: 4px;
+    }
+
+    .product-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.12s;
+      user-select: none;
+      position: relative;
+    }
+
+    .product-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .product-card.in-cart {
+      border-color: #2e7d32;
+      background: #f1f8f2;
+    }
+
+    .product-card.out-of-stock {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .product-card.out-of-stock:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -6px; right: -6px;
+      background: #2e7d32;
+      color: #fff;
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+
+    .low-stock-badge {
+      position: absolute;
+      top: 8px; right: 8px;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .product-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 6px;
+      line-height: 1.3;
+      min-height: 34px;
+    }
+
+    .product-stock {
+      font-size: 11px;
+      color: #999;
+      margin-bottom: 8px;
+    }
+
+    .product-price {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a2e;
+    }
+
+    .empty-grid {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: #aaa;
+    }
+
+    /* ── Cart side ── */
+    .cart-panel {
+      width: 380px;
+      background: #fff;
+      border-left: 1px solid #e8e8e8;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .cart-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cart-header h2 { font-size: 15px; color: #1a1a2e; }
+
+    .clear-cart-btn {
+      font-size: 12px;
+      color: #c62828;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 20px;
+    }
+
+    .cart-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: #bbb;
+      font-size: 13px;
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f5f5f5;
+    }
+
+    .cart-item-info { flex: 1; min-width: 0; }
+
+    .cart-item-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a2e;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cart-item-price {
+      font-size: 11px;
+      color: #999;
+      margin-top: 2px;
+    }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .qty-btn {
+      width: 24px; height: 24px;
+      border-radius: 6px;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1a1a2e;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+    }
+
+    .qty-btn:hover { background: #e8b84b; }
+
+    .qty-value {
+      width: 28px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .remove-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .remove-btn:hover { color: #c62828; }
+
+    .cart-item-total {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a2e;
+      min-width: 70px;
+      text-align: right;
+    }
+
+    /* ── Cart footer / totals ── */
+    .cart-footer {
+      border-top: 1px solid #f0f0f0;
+      padding: 16px 20px 20px;
+    }
+
+    .discount-section {
+      margin-bottom: 14px;
+    }
+
+    .discount-toggle {
+      font-size: 12px;
+      color: #1565c0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 0;
+      margin-bottom: 8px;
+    }
+
+    .discount-inputs {
+      display: none;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .discount-inputs.open { display: flex; }
+
+    .discount-inputs input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .discount-inputs input:focus { border-color: #e8b84b; }
+
+    .discount-preview {
+      font-size: 11px;
+      color: #e65100;
+      display: none;
+    }
+
+    .discount-preview.show { display: block; }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 6px;
+    }
+
+    .totals-row.discount-row {
+      color: #e65100;
+    }
+
+    .totals-row.final {
+      font-size: 18px;
+      font-weight: 700;
+      color: #1a1a2e;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #e0e0e0;
+    }
+
+    .confirm-btn {
+      width: 100%;
+      padding: 14px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    .confirm-btn:hover:not(:disabled) { background: #2e7d32; }
+    .confirm-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+    /* ── Receipt modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 400;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .receipt-modal {
+      background: #fff;
+      border-radius: 16px;
+      padding: 32px;
+      width: 360px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+
+    .receipt-check {
+      width: 56px; height: 56px;
+      background: #e8f5e9;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 28px;
+    }
+
+    .receipt-modal h3 { font-size: 17px; color: #1a1a2e; margin-bottom: 4px; }
+    .receipt-modal .receipt-total {
+      font-size: 28px; font-weight: 800; color: #2e7d32;
+      margin: 12px 0;
+    }
+
+    .receipt-items {
+      text-align: left;
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin: 16px 0;
+      max-height: 160px;
+      overflow-y: auto;
+    }
+
+    .receipt-line {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #555;
+      padding: 4px 0;
+    }
+
+    .receipt-close-btn {
+      width: 100%;
+      padding: 12px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #1a1a2e;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      z-index: 999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .toast.error { background: #c62828; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+
+
+<div class="layout">
+
+  <!-- Product side -->
+  <div class="product-panel">
+    <div class="toolbar">
+      <input class="search-input" type="text" placeholder="Search products..."
+        oninput="filterGrid()" id="search-input"/>
+      <select class="filter-select" onchange="filterGrid()" id="category-filter">
+        <option value="">All categories</option>
+      </select>
+    </div>
+
+    <div class="product-grid" id="product-grid">
+      <div class="empty-grid">Loading products...</div>
+    </div>
+  </div>
+
+  <!-- Cart side -->
+  <div class="cart-panel">
+    <div class="cart-header">
+      <h2>Current Sale</h2>
+      <button class="clear-cart-btn" onclick="clearCart()">Clear cart</button>
+    </div>
+
+    <div class="cart-items" id="cart-items">
+      <div class="cart-empty">Tap a product to add it to the sale</div>
+    </div>
+
+    <div class="cart-footer">
+      <div class="discount-section">
+        <button class="discount-toggle" onclick="toggleDiscount()" id="discount-toggle">
+          + Add negotiated discount
+        </button>
+        <div class="discount-inputs" id="discount-inputs">
+          <input type="number" placeholder="₦ amount" id="discount-naira"
+            oninput="onDiscountNairaInput()" min="0"/>
+          <input type="number" placeholder="% off" id="discount-percent"
+            oninput="onDiscountPercentInput()" min="0" max="100"/>
+        </div>
+        <div class="discount-preview" id="discount-preview"></div>
+      </div>
+
+      <div class="totals-row">
+        <span>Subtotal</span>
+        <span id="subtotal-value">₦0</span>
+      </div>
+      <div class="totals-row discount-row" id="discount-row" style="display:none">
+        <span>Discount</span>
+        <span id="discount-value">−₦0</span>
+      </div>
+      <div class="totals-row final">
+        <span>Total</span>
+        <span id="total-value">₦0</span>
+      </div>
+
+      <button class="confirm-btn" id="confirm-btn" onclick="confirmSale()" disabled>
+        Confirm Sale
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Receipt modal -->
+<div class="modal-overlay" id="receipt-modal">
+  <div class="receipt-modal">
+    <div class="receipt-check">✓</div>
+    <h3>Sale Confirmed</h3>
+    <div class="receipt-total" id="receipt-total">₦0</div>
+    <div class="receipt-items" id="receipt-items"></div>
+    <button class="receipt-close-btn" onclick="closeReceipt()">New Sale</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Auth guard ─────────────────────────────────────────────────────────────
+  const token = localStorage.getItem('oga_token');
+  if (!token) { window.location.href = '/login'; }
+
+  let allProducts = [];
+  let cart = {};  // { product_id: { product, quantity } }
+
+  // ── Load products ──────────────────────────────────────────────────────────
+  async function loadProducts() {
+    try {
+      const res = await fetch('/products', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      allProducts = await res.json();
+      renderGrid(allProducts);
+      populateCategoryFilter(allProducts);
+    } catch (err) {
+      showToast('Failed to load products', 'error');
+    }
+  }
+
+  function populateCategoryFilter(products) {
+    const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+    const select = document.getElementById('category-filter');
+    categories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat; opt.textContent = cat;
+      select.appendChild(opt);
+    });
+  }
+
+  function filterGrid() {
+    const query    = document.getElementById('search-input').value.toLowerCase();
+    const category = document.getElementById('category-filter').value;
+    const filtered = allProducts.filter(p => {
+      const matchSearch = !query || p.name.toLowerCase().includes(query);
+      const matchCat = !category || p.category === category;
+      return matchSearch && matchCat;
+    });
+    renderGrid(filtered);
+  }
+
+  // ── Render product grid ────────────────────────────────────────────────────
+  function renderGrid(products) {
+    const grid = document.getElementById('product-grid');
+
+    if (products.length === 0) {
+      grid.innerHTML = `<div class="empty-grid">No products found</div>`;
+      return;
+    }
+
+    grid.innerHTML = products.map(p => {
+      const inCart = cart[p.id];
+      const isOut  = p.current_stock <= 0;
+      const isLow  = !isOut && p.current_stock <= p.reorder_threshold;
+
+      return `
+        <div class="product-card ${inCart ? 'in-cart' : ''} ${isOut ? 'out-of-stock' : ''}"
+             onclick="${isOut ? '' : `addToCart(${p.id})`}">
+          ${inCart ? `<div class="cart-badge">${inCart.quantity}</div>` : ''}
+          ${isLow ? `<div class="low-stock-badge">Low</div>` : ''}
+          <div class="product-name">${esc(p.name)}</div>
+          <div class="product-stock">${isOut ? 'Out of stock' : `${p.current_stock} ${esc(p.unit||'')} left`}</div>
+          <div class="product-price">₦${fmt(p.selling_price)}</div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Cart logic ─────────────────────────────────────────────────────────────
+  function addToCart(productId) {
+    const product = allProducts.find(p => p.id === productId);
+    if (!product) return;
+
+    const existingQty = cart[productId] ? cart[productId].quantity : 0;
+    if (existingQty + 1 > product.current_stock) {
+      showToast(`Only ${product.current_stock} ${product.unit} of ${product.name} left`, 'error');
+      return;
+    }
+
+    if (cart[productId]) {
+      cart[productId].quantity += 1;
+    } else {
+      cart[productId] = { product, quantity: 1 };
+    }
+
+    renderGrid(filteredOrAll());
+    renderCart();
+  }
+
+  function changeQty(productId, delta) {
+    const entry = cart[productId];
+    if (!entry) return;
+
+    const newQty = entry.quantity + delta;
+
+    if (newQty <= 0) {
+      delete cart[productId];
+    } else if (newQty > entry.product.current_stock) {
+      showToast(`Only ${entry.product.current_stock} ${entry.product.unit} available`, 'error');
+      return;
+    } else {
+      entry.quantity = newQty;
+    }
+
+    renderGrid(filteredOrAll());
+    renderCart();
+  }
+
+  function removeFromCart(productId) {
+    delete cart[productId];
+    renderGrid(filteredOrAll());
+    renderCart();
+  }
+
+  function clearCart() {
+    cart = {};
+    document.getElementById('discount-naira').value = '';
+    document.getElementById('discount-percent').value = '';
+    renderGrid(filteredOrAll());
+    renderCart();
+  }
+
+  function filteredOrAll() {
+    const query    = document.getElementById('search-input').value.toLowerCase();
+    const category = document.getElementById('category-filter').value;
+    if (!query && !category) return allProducts;
+    return allProducts.filter(p => {
+      const matchSearch = !query || p.name.toLowerCase().includes(query);
+      const matchCat = !category || p.category === category;
+      return matchSearch && matchCat;
+    });
+  }
+
+  // ── Render cart ────────────────────────────────────────────────────────────
+  function renderCart() {
+    const container = document.getElementById('cart-items');
+    const entries = Object.values(cart);
+
+    if (entries.length === 0) {
+      container.innerHTML = `<div class="cart-empty">Tap a product to add it to the sale</div>`;
+      document.getElementById('confirm-btn').disabled = true;
+      updateTotals();
+      return;
+    }
+
+    container.innerHTML = entries.map(entry => {
+      const lineTotal = entry.quantity * entry.product.selling_price;
+      return `
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${esc(entry.product.name)}</div>
+            <div class="cart-item-price">₦${fmt(entry.product.selling_price)} each</div>
+          </div>
+          <div class="qty-control">
+            <button class="qty-btn" onclick="changeQty(${entry.product.id}, -1)">−</button>
+            <span class="qty-value">${entry.quantity}</span>
+            <button class="qty-btn" onclick="changeQty(${entry.product.id}, 1)">+</button>
+          </div>
+          <div class="cart-item-total">₦${fmt(lineTotal)}</div>
+          <button class="remove-btn" onclick="removeFromCart(${entry.product.id})">×</button>
+        </div>`;
+    }).join('');
+
+    document.getElementById('confirm-btn').disabled = false;
+    updateTotals();
+  }
+
+  // ── Discount toggle ────────────────────────────────────────────────────────
+  function toggleDiscount() {
+    const inputs = document.getElementById('discount-inputs');
+    inputs.classList.toggle('open');
+  }
+
+  function getSubtotal() {
+    return Object.values(cart).reduce(
+      (sum, e) => sum + (e.quantity * e.product.selling_price), 0
+    );
+  }
+
+  function onDiscountNairaInput() {
+    const subtotal = getSubtotal();
+    const naira = parseFloat(document.getElementById('discount-naira').value) || 0;
+    const pct = subtotal > 0 ? (naira / subtotal * 100) : 0;
+    document.getElementById('discount-percent').value = pct > 0 ? pct.toFixed(1) : '';
+    updateTotals();
+  }
+
+  function onDiscountPercentInput() {
+    const subtotal = getSubtotal();
+    const pct = parseFloat(document.getElementById('discount-percent').value) || 0;
+    const naira = subtotal * (pct / 100);
+    document.getElementById('discount-naira').value = naira > 0 ? Math.round(naira) : '';
+    updateTotals();
+  }
+
+  function updateTotals() {
+    const subtotal = getSubtotal();
+    const naira = parseFloat(document.getElementById('discount-naira').value) || 0;
+    const pct   = parseFloat(document.getElementById('discount-percent').value) || 0;
+
+    const discountAmount = Math.min(naira, subtotal);
+    const effectivePct   = subtotal > 0 ? (discountAmount / subtotal * 100) : 0;
+    const total = subtotal - discountAmount;
+
+    document.getElementById('subtotal-value').textContent = `₦${fmt(subtotal)}`;
+    document.getElementById('total-value').textContent    = `₦${fmt(total)}`;
+
+    const discountRow = document.getElementById('discount-row');
+    if (discountAmount > 0) {
+      discountRow.style.display = 'flex';
+      document.getElementById('discount-value').textContent =
+        `−₦${fmt(discountAmount)} (${effectivePct.toFixed(1)}%)`;
+    } else {
+      discountRow.style.display = 'none';
+    }
+  }
+
+  // ── Confirm sale ───────────────────────────────────────────────────────────
+  async function confirmSale() {
+    const entries = Object.values(cart);
+    if (entries.length === 0) return;
+
+    const btn = document.getElementById('confirm-btn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    const naira = parseFloat(document.getElementById('discount-naira').value) || 0;
+
+    const payload = {
+      items: entries.map(e => ({ product_id: e.product.id, quantity: e.quantity })),
+      discount_naira: naira,
+    };
+
+    try {
+      const res = await fetch('/pos/sale', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.detail || 'Sale failed', 'error');
+        return;
+      }
+
+      showReceipt(data);
+      clearCart();
+      await loadProducts();  // refresh stock levels
+
+    } catch (err) {
+      showToast('Could not reach the server', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Confirm Sale';
+    }
+  }
+
+  // ── Receipt modal ──────────────────────────────────────────────────────────
+  function showReceipt(data) {
+    document.getElementById('receipt-total').textContent = `₦${fmt(data.total)}`;
+    document.getElementById('receipt-items').innerHTML = data.items.map(item => `
+      <div class="receipt-line">
+        <span>${esc(item.quantity)} × ${esc(item.name)}</span>
+        <span>₦${fmt(item.final_amount)}</span>
+      </div>
+    `).join('');
+    document.getElementById('receipt-modal').classList.add('open');
+  }
+
+  function closeReceipt() {
+    document.getElementById('receipt-modal').classList.remove('open');
+  }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(message, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => { toast.className = `toast ${type}`; }, 2500);
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  function fmt(n) { return Number(n).toLocaleString('en-NG'); }
+  function esc(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // ── Init ───────────────────────────────────────────────────────────────────
+  loadProducts();
+</script>
+<script src="/static/nav.js"></script>
+<script>renderOgaNav('pos');</script>
+</body>
+</html>

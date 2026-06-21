@@ -5,7 +5,7 @@ DB_PATH = os.path.join(os.path.dirname(__file__), "sme.db")
 
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False, timeout=10)
     conn.row_factory = sqlite3.Row  # lets us access columns by name
     return conn
 

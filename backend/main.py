@@ -2,6 +2,9 @@ import sys
 import os
 import uuid
 
+from database.models import create_tables
+from auth.models import create_auth_tables, create_default_business
+
 sys.path.append(os.path.dirname(__file__))
 
 from fastapi import FastAPI, HTTPException, Header
@@ -23,6 +26,11 @@ from auth.routes import router as auth_router
 from auth.utils import decode_token
 
 app = FastAPI(title="Oga Assistant — SME Agent")
+
+# Create database tables on startup if they don't exist
+create_tables()
+create_auth_tables()
+create_default_business()
 
 app.add_middleware(
     CORSMiddleware,

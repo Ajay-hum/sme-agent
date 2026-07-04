@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Oga Assistant — AI Business Manager for Nigerian SMEs</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --dark:   #0f0f1a;
+      --dark2:  #1a1a2e;
+      --gold:   #e8b84b;
+      --gold2:  #f5cc6e;
+      --white:  #ffffff;
+      --gray:   #888;
+      --light:  #f5f5f0;
+      --green:  #2e7d32;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--white);
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 100;
+      padding: 0 48px;
+      height: 64px;
+      display: flex; align-items: center;
+      background: rgba(15,15,26,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .nav-logo {
+      font-size: 20px; font-weight: 800;
+      color: var(--gold); letter-spacing: -0.5px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex; gap: 32px;
+      margin-left: auto; margin-right: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: rgba(255,255,255,0.65);
+      text-decoration: none; font-size: 14px;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--white); }
+
+    .nav-cta {
+      padding: 9px 22px;
+      background: var(--gold);
+      color: var(--dark);
+      border-radius: 8px;
+      font-size: 14px; font-weight: 700;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .nav-cta:hover { background: var(--gold2); transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 700px; height: 700px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,184,75,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(232,184,75,0.12);
+      border: 1px solid rgba(232,184,75,0.3);
+      color: var(--gold);
+      padding: 6px 16px; border-radius: 20px;
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 72px);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      max-width: 820px;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 span { color: var(--gold); }
+
+    .hero p {
+      font-size: clamp(16px, 2vw, 20px);
+      color: rgba(255,255,255,0.6);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .hero-btns {
+      display: flex; gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      padding: 15px 36px;
+      background: var(--gold);
+      color: var(--dark);
+      border-radius: 10px;
+      font-size: 16px; font-weight: 700;
+      text-decoration: none;
+      transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+
+    .btn-primary:hover {
+      background: var(--gold2);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(232,184,75,0.3);
+    }
+
+    .btn-secondary {
+      padding: 15px 36px;
+      background: transparent;
+      color: rgba(255,255,255,0.8);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      font-size: 16px; font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .btn-secondary:hover {
+      border-color: rgba(255,255,255,0.5);
+      color: var(--white);
+    }
+
+    .hero-stats {
+      display: flex; gap: 48px;
+      margin-top: 64px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero-stat-value {
+      font-size: 32px; font-weight: 800;
+      color: var(--gold);
+    }
+
+    .hero-stat-label {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 4px;
+    }
+
+    /* ── PROBLEM ── */
+    .section {
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .section-label {
+      font-size: 12px; font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 17px;
+      color: var(--gray);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-bottom: 56px;
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .problem-card {
+      background: var(--light);
+      border-radius: 14px;
+      padding: 28px;
+      border-left: 4px solid #e0e0e0;
+      transition: border-color 0.2s;
+    }
+
+    .problem-card:hover { border-left-color: var(--gold); }
+
+    .problem-icon { font-size: 28px; margin-bottom: 14px; }
+
+    .problem-card h3 {
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 8px; color: var(--dark);
+    }
+
+    .problem-card p {
+      font-size: 14px; color: var(--gray);
+      line-height: 1.6;
+    }
+
+    /* ── FEATURES ── */
+    .features-section {
+      background: var(--dark);
+      padding: 100px 24px;
+    }
+
+    .features-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+
+    .features-header .section-title { color: var(--white); }
+    .features-header .section-sub   { color: rgba(255,255,255,0.5); margin: 0 auto; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 32px;
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(232,184,75,0.4);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: rgba(232,184,75,0.12);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .feature-card h3 {
+      font-size: 18px; font-weight: 700;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7;
+    }
+
+    .feature-bullets {
+      margin-top: 16px;
+      list-style: none;
+    }
+
+    .feature-bullets li {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      padding: 4px 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .feature-bullets li::before {
+      content: '✓';
+      color: var(--gold);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps-section {
+      padding: 100px 24px;
+      background: var(--light);
+    }
+
+    .steps-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 40px;
+      margin-top: 56px;
+      position: relative;
+    }
+
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px; left: 16.5%; right: 16.5%;
+      height: 2px;
+      background: linear-gradient(90deg, var(--gold), var(--gold2));
+      z-index: 0;
+    }
+
+    .step {
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-num {
+      width: 56px; height: 56px;
+      background: var(--gold);
+      color: var(--dark);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800;
+      margin: 0 auto 20px;
+    }
+
+    .step h3 {
+      font-size: 16px; font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      font-size: 14px; color: var(--gray);
+      line-height: 1.6;
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials-section {
+      padding: 100px 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+      margin-top: 56px;
+    }
+
+    .testimonial-card {
+      background: var(--light);
+      border-radius: 16px;
+      padding: 28px;
+    }
+
+    .testimonial-stars {
+      color: var(--gold);
+      font-size: 16px;
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+    }
+
+    .testimonial-text {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--dark);
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .testimonial-author {
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .testimonial-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--dark2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    .testimonial-name {
+      font-size: 14px; font-weight: 700;
+    }
+
+    .testimonial-role {
+      font-size: 12px; color: var(--gray);
+    }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: var(--dark);
+      padding: 100px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232,184,75,0.1) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      color: var(--white);
+      letter-spacing: -1px;
+      max-width: 680px;
+      margin: 0 auto 20px;
+      line-height: 1.15;
+    }
+
+    .cta-section h2 span { color: var(--gold); }
+
+    .cta-section p {
+      color: rgba(255,255,255,0.5);
+      font-size: 17px;
+      max-width: 480px;
+      margin: 0 auto 40px;
+      line-height: 1.7;
+    }
+
+    .cta-note {
+      margin-top: 16px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #080810;
+      padding: 40px 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      font-size: 18px; font-weight: 800;
+      color: var(--gold);
+    }
+
+    .footer-text {
+      font-size: 13px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    .footer-link {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer-link:hover { color: var(--gold); }
+
+    @media (max-width: 600px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .steps-grid::before { display: none; }
+      footer { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Oga Assistant</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#how-it-works">How it works</a></li>
+    <li><a href="#testimonials">Testimonials</a></li>
+  </ul>
+  <a class="nav-cta" href="/login">Get Started Free →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">⚡ Powered by Multi-Agent AI</div>
+  <h1>Run your store smarter.<br><span>Know your numbers.</span></h1>
+  <p>Oga Assistant gives Nigerian store and shop owners real-time visibility into stock, sales, and profit — through a simple chat interface that works like a knowledgeable business partner.</p>
+  <div class="hero-btns">
+    <a class="btn-primary" href="/login">Start for free →</a>
+    <a class="btn-secondary" href="#features">See how it works</a>
+  </div>
+  <div class="hero-stats">
+    <div>
+      <div class="hero-stat-value">4</div>
+      <div class="hero-stat-label">AI agents working for you</div>
+    </div>
+    <div>
+      <div class="hero-stat-value">41M</div>
+      <div class="hero-stat-label">Nigerian businesses, most without real-time financial data</div>
+    </div>
+    <div>
+      <div class="hero-stat-value">Real-time</div>
+      <div class="hero-stat-label">Stock and profit data</div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section>
+  <div class="section">
+    <div class="section-label">The problem</div>
+    <h2 class="section-title">Running a Nigerian store<br>is harder than it should be</h2>
+    <p class="section-sub">Most store owners make their biggest business decisions from memory, guesswork, and handwritten notebooks.</p>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-icon">📦</div>
+        <h3>Stock runs out without warning</h3>
+        <p>You only realise Indomie is finished when a customer asks for it — and by then you've already lost the sale.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">💸</div>
+        <h3>You don't know your real profit</h3>
+        <p>Money comes in, money goes out. At the end of the month, you can't tell if the business actually made money.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">📱</div>
+        <h3>Everything runs through WhatsApp</h3>
+        <p>Customer orders, supplier messages, staff requests — all mixed together in one inbox, with no records and no system.</p>
+      </div>
+      <div class="problem-card">
+        <div class="problem-icon">⏰</div>
+        <h3>No time to think about growth</h3>
+        <p>You're so busy handling today's chaos that there's never time to plan tomorrow. The business runs you instead of the other way around.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="features-inner">
+    <div class="features-header">
+      <div class="section-label">What Oga Assistant does</div>
+      <h2 class="section-title">Four AI agents.<br>One business partner.</h2>
+      <p class="section-sub">Each agent specialises in one part of your business. Together, they give you complete visibility and control.</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📦</div>
+        <h3>Inventory Agent</h3>
+        <p>Always knows what's in stock, what's running low, and exactly what to reorder — before you run out.</p>
+        <ul class="feature-bullets">
+          <li>Real-time stock levels</li>
+          <li>Automatic low-stock alerts</li>
+          <li>Smart reorder suggestions with supplier contacts</li>
+          <li>Sales velocity tracking</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💰</div>
+        <h3>Finance Agent</h3>
+        <p>Tells you exactly how much profit you made, which products earn the most, and where your money is going.</p>
+        <ul class="feature-bullets">
+          <li>Daily and weekly profit summaries</li>
+          <li>Margin analysis per product</li>
+          <li>Expense breakdown by supplier</li>
+          <li>Restock budget calculator</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3>Sales Agent + POS</h3>
+        <p>Handle customer inquiries and record sales instantly — with a fast tap-to-sell interface built for busy counters.</p>
+        <ul class="feature-bullets">
+          <li>Product availability checks</li>
+          <li>Quick sale grid with one-tap checkout</li>
+          <li>Negotiated discount tracking</li>
+          <li>Automatic stock deduction on sale</li>
+        </ul>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Ask Anything</h3>
+        <p>One chat interface that routes any question to the right agent automatically. No tabs, no menus, just answers.</p>
+        <ul class="feature-bullets">
+          <li>Natural language questions</li>
+          <li>Combines answers from multiple agents</li>
+          <li>Understands Nigerian business context</li>
+          <li>Available 24/7</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="steps-section" id="how-it-works">
+  <div class="steps-inner">
+    <div class="section-label" style="text-align:center">How it works</div>
+    <h2 class="section-title">Up and running in minutes</h2>
+    <p class="section-sub" style="margin:0 auto 0; text-align:center">No training. No complicated setup. Just your business, managed better.</p>
+    <div class="steps-grid">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Create your account</h3>
+        <p>Sign up with your business name and email. Takes less than a minute.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Add your products</h3>
+        <p>Enter your products manually or upload a CSV file. Set your prices and reorder levels.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Ask anything</h3>
+        <p>Type a question like you'd ask a staff member. Your AI agents handle the rest.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials-section" id="testimonials">
+  <div class="section-label">Testimonials</div>
+  <h2 class="section-title">What store owners are saying</h2>
+  <p class="section-sub">Real feedback from real businesses using Oga Assistant.</p>
+  <div class="testimonials-grid">
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"Before Oga Assistant, I never really knew if I was making profit or just turning over money. Now I check every morning and it tells me exactly where I stand."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👩</div>
+        <div>
+          <div class="testimonial-name">Ngozi A.</div>
+          <div class="testimonial-role">Provisions store owner, Lagos</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"The restock alerts alone have saved me so many times. I used to run out of rice and not know until a customer complained. That doesn't happen anymore."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👨</div>
+        <div>
+          <div class="testimonial-name">Emeka O.</div>
+          <div class="testimonial-role">Wholesale distributor, Abuja</div>
+        </div>
+      </div>
+    </div>
+    <div class="testimonial-card">
+      <div class="testimonial-stars">★★★★★</div>
+      <p class="testimonial-text">"My staff use the Quick Sale screen at the counter now. It's faster than writing receipts by hand and the stock updates automatically. Very impressive."</p>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">👩</div>
+        <div>
+          <div class="testimonial-name">Fatima B.</div>
+          <div class="testimonial-role">Pharmacy owner, Kano</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Your store deserves better<br>than <span>pen and paper.</span></h2>
+  <p>Join Nigerian business owners who are managing their stores smarter with Oga Assistant.</p>
+  <a class="btn-primary" href="/login" style="font-size:17px; padding:17px 44px;">
+    Get started free →
+  </a>
+  <p class="cta-note">No credit card required. Set up in under 5 minutes.</p>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Oga Assistant</div>
+  <div class="footer-text">© 2026 Oga Assistant. Built for Nigerian SMEs.</div>
+  <div style="display:flex; gap:24px;">
+    <a class="footer-link" href="/login">Log in</a>
+    <a class="footer-link" href="/login">Sign up</a>
+  </div>
+</footer>
+
+</body>
+</html>

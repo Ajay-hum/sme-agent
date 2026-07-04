@@ -11,7 +11,7 @@ function renderOgaNav(activePage) {
   }
 
   const pages = [
-    { id: 'chat',  label: '⚡ Chat',      url: '/'      },
+    { id: 'chat', label: '⚡ Chat', url: '/app' },
     { id: 'pos',   label: '🛒 Quick Sale', url: '/pos'   },
     { id: 'admin', label: '📦 Products',   url: '/admin' },
   ];

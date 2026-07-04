@@ -381,7 +381,7 @@
 
       showMessage('login-message', `Welcome back, ${data.full_name}! Redirecting...`, 'success');
 
-      setTimeout(() => { window.location.href = '/'; }, 800);
+      setTimeout(() => { window.location.href = '/app'; }, 800);
 
     } catch (err) {
       showMessage('login-message', 'Could not reach the server. Please try again.', 'error');
@@ -439,7 +439,7 @@
         'success'
       );
 
-      setTimeout(() => { window.location.href = '/'; }, 1200);
+      setTimeout(() => { window.location.href = '/app'; }, 800);
 
     } catch (err) {
       showMessage('signup-message', 'Could not reach the server. Please try again.', 'error');
@@ -451,7 +451,7 @@
 
   // ── Auto redirect if already logged in ────────────────────────────────────
   if (localStorage.getItem('oga_token')) {
-    window.location.href = '/';
+    window.location.href = '/app';
   }
 </script>
 </body>
